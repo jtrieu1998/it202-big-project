@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Corona Home</title>
+    <link rel="manifest" href="./site.webmanifest">
+  <link href="https://unpkg.com/material-components-web@v4.0.0/dist/material-components-web.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/material-components-web@v4.0.0/dist/material-components-web.min.js"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  
+  <style>
+    :root {
+      --mdc-theme-primary: #0A5;
+    }
+    body {margin: 0;}
+    main {margin-left: 8px;}
+    .view{
+          display: none;
+    }
+  </style>
+
+  </head>
+  <body>  
+    
+    <aside class="mdc-drawer mdc-drawer--modal">
+    <div class="mdc-drawer__content">
+      <nav class="mdc-list">
+        <a class="mdc-list-item mdc-list-item--activated" href="#" id="home-button" aria-current="page">
+          <i class="material-icons mdc-list-item__graphic" aria-hidden="true">home</i>
+          <span class="mdc-list-item__text">Home</span>
+        </a>
+        <a class="mdc-list-item" onClick="showTable()" id="tables-button">
+          <i class="material-icons mdc-list-item__graphic" aria-hidden="true">tables</i>
+          <span class="mdc-list-item__text">Tables</span>
+        </a>
+        <a class="mdc-list-item" onClick="showChart()" id="charts-button">
+          <i class="material-icons mdc-list-item__graphic" aria-hidden="true">charts</i>
+          <span class="mdc-list-item__text">Charts</span>
+        </a>
+      </nav>
+    </div>
+  </aside>
+
+  <div class="mdc-drawer-scrim"></div>
+      
+<!--header bar-->
+<header class="mdc-top-app-bar">        
+  <div class="mdc-top-app-bar__row">
+    <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
+      <button class="material-icons mdc-top-app-bar__navigation-icon mdc-icon-button">menu</button>
+      <span class="mdc-top-app-bar__title">Corona virus tracker</span>
+    </section>
+    <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end" role="toolbar">
+      <button class="material-icons mdc-top-app-bar__action-item mdc-icon-button" aria-label="Download">file_download</button>
+      <button class="material-icons mdc-top-app-bar__action-item mdc-icon-button" aria-label="Print this page">print</button>
+      <button class="material-icons mdc-top-app-bar__action-item mdc-icon-button" aria-label="Bookmark this page">bookmark</button>
+    </section>
+  </div>
+</header>
+
+
+
+  <main class="mdc-top-app-bar--fixed-adjust">
+      <br/>
+      <div id="home">  
+          <label for="allCountries">Choose States from this list:</label>
+          <input list="states" id="allStates" name="allStates" />
+          <datalist id="states">
+              <!--options in script-->
+          </datalist>
+          <div id="myStates">
+          
+          </div>
+          <br/>
+          <label for="stats-list">Choose Statistic:</label>
+          <input list="stats" id="stats-list" name="stats-list" />
+
+          <datalist id="stats">
+              <option value="Confirmed Cases">
+              <option value="Deaths">
+              <option value="Total Tests Administered">
+          </datalist>
+          <div id="myTypes">
+          
+          </div>
+          <br/>
+          <br/>
+          <button class="mdc-button foo-button mdc-button--raised" onClick="addStates()">
+              <div class="mdc-button__ripple"></div>
+              <span class="mdc-button__label">Add State</span>
+          </button>
+          <button class="mdc-button foo-button mdc-button--raised" onClick="addType()">
+              <div class="mdc-button__ripple"></div>
+              <span class="mdc-button__label">Add Statistic Type</span>
+          </button>
+      </div> <!-- home ending div --> 
+      
+      
+      <div id="tables" style="display:none">
+          <h1>Confirmed Cases</h1>
+          <div id="table_div"></div>
+      </div> <!-- table ending div -->
+      
+      
+      <div id="charts" style="display:none">
+          <h1>Confirmed Cases</h1>
+          <h4>Hover over lines to see exact numbers</h4>
+          <div id="chart_div"></div>
+      </div> <!-- charts ending div -->
+  </main>
+
+
+  <script>
+    //----------------------------DATA/HOME SET UP----------------------------
+    let states;
+    let data;
+    let organized = [];
+    let aStates = "";
+    let sStates = [];
+    let sData = [];
+    let type = [];
+    let tRow = [];
+    let bRow = [];
+      
+    let stateEndpoint = "https://covidtracking.com/api/v1/states/info.json";
+    let currEndpoint = "https://covidtracking.com/api/v1/states/current.json";
+    fetch(stateEndpoint)
+    .then(response => {return response.json()})
+    .then(json => {
+        states = json;
+        fetch(currEndpoint)
+        .then(response => {return response.json()})
+        .then(json => {
+            data = json;
+            console.log(states);
+            console.log(data);
+   
+            for(let prop in data){
+                for(let i in states){
+                    if(states[i].state == data[prop].state){
+                        organized[states[i].name] = data[prop];
+                    }
+                }
+            }
+            
+            for(let prop in organized){
+                aStates += "<option value='"+prop+"'/>";
+            }
+            document.getElementById("states").innerHTML = aStates;
+            console.log(organized);
+        }).catch(err => console.error(err)); 
+    }).catch(err => console.error(err));
+      
+     
+    
+    if (navigator.serviceWorker) {
+      navigator.serviceWorker.register('./sw.js').then(function(registration) {
+        console.log('ServiceWorker registration successful with scope:',  registration.scope);
+      }).catch(function(error) {
+        console.log('ServiceWorker registration failed:', errror);
+      });
+    }
+
+    mdc.topAppBar.MDCTopAppBar.attachTo(document.querySelector('header.mdc-top-app-bar'));
+
+    const drawer = mdc.drawer.MDCDrawer.attachTo(document.querySelector('.mdc-drawer'));
+
+    document.querySelector(".mdc-top-app-bar__navigation-icon")
+        .addEventListener("click", (e) => { 
+//             console.log("drawer clicked");
+            drawer.open = true;
+    });
+    
+    mdc.ripple.MDCRipple.attachTo(document.querySelector('.foo-button'));  
+      
+    addStates = () => {
+        let inBox = document.querySelector("#allStates");
+        let sS = inBox.value
+        //if cBool is false the add to array
+        let sBool = false;
+
+        //check if entry is blank or already in array
+        if(sS == ""){
+            sBool = true;
+        } else {
+            for(let c in sStates){
+               if(sS == sStates[c]){
+                   sBool = true;
+               }
+            }
+        }
+        
+        if(!sBool){
+            
+            sStates.push(sS);
+            for(d in organized){
+                if(d == sS){
+                    sData[sS] = organized[d];
+                }
+            }
+            let spot = document.querySelector("#myStates")
+            let newE = document.createElement("p")
+            newE.innerText = sS;
+            spot.appendChild(newE);
+        }
+        console.log(sData);
+        inBox.value = "";
+    }
+    
+    addType = () => {
+        let inBox = document.querySelector("#stats-list");
+        let sT = inBox.value;
+        let tBool = false;
+        switch(sT){
+            case "Confirmed Cases": 
+                sT = "positive";
+                break;
+            case "Deaths":
+                sT = "death";
+                break;
+            case "Total Tests Administered":
+                sT = "total";
+                break;
+            default:
+                sT = "";
+                break;
+         }
+        
+        
+        if(sT == ""){
+            tBool = true;
+        } else {
+            for(let t in type){
+                if(sT == type[t]){
+                    tBool = true;
+                }
+            }
+        }
+        
+//         <option value="Confirmed Cases">
+//               <option value="Deaths">
+//               <option value="Total Tests Administered">
+        if(!tBool){            
+            type.push(sT);
+            let spot = document.querySelector("#myTypes")
+            let newE = document.createElement("p")
+            newE.innerText = inBox.value;
+            spot.appendChild(newE);
+        }
+        console.log(type);
+        inBox.value = "";
+    }
+    
+    showTable = () => {
+      tRow = [];
+      google.charts.load('current', {'packages':['table']});
+      google.charts.setOnLoadCallback(drawTable);
+            function drawTable() {
+              console.log("table being drawn");
+              let tdata = new google.visualization.DataTable();
+              tdata.addColumn('string', 'State');
+                  for(t in type){
+                      let thead = "";
+                      switch(type[t]){
+                        case "positive": 
+                            thead = "Confirmed Cases";
+                            break;
+                        case "death":
+                            thead = "Deaths";
+                            break;
+                        case "total":
+                            thead = "Total Tests Administered";
+                            break;
+                        default:
+                            thead = "";
+                            break;
+                      }
+
+                      tdata.addColumn('number', thead);
+                  }
+                
+              let numStates = sData.length;
+              let i = 0;
+              for(let s in sData){
+                  tRow.push([s])
+//                   console.log(sData[s]["positive"]);
+                  for(let t in type){
+//                       console.log(type[t]);
+                      tRow[i].push(sData[s][type[t]]);
+                  }
+                  i++;
+              }
+                  
+              
+              console.log("Row Data");
+              console.log(tRow);
+              tdata.addRows(tRow);
+              //a single row for one country is -> (sData[sCountries[c]][i]["confirmed"]);
+              let table = new google.visualization.Table(document.getElementById('table_div'));
+              
+              table.draw(tdata, {width: '100%', height: '100%'});
+            }      
+      
+    }//showTable()
+    
+    
+//             function drawCurveTypes() {
+//               let cData = new google.visualization.DataTable();
+//               cData.addColumn('string', 'Date');
+//               for(c in sCountries){
+//                   cData.addColumn('number', sCountries[c]);
+//               }
+//               cData.addRows(tRowData);
+//               let options = {
+//             title:'Confirmed Cases of COVID-19 around the world',
+//                 hAxis: {
+//                   title: 'Date'
+//                 },
+//                 vAxis: {
+//                   title: 'Confirmed Cases'
+//                 },
+//                 series: {
+//                   1: {curveType: 'function'}
+//                 },
+//                 width:1000,
+//                 height: 500
+//               };
+
+//               let chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+//               chart.draw(cData, options);
+//             }
+    
+    showChart = () => {
+        bRow = [];
+        tRow = [];
+        google.charts.load('current', {packages: ['corechart', 'bar']});
+        google.charts.setOnLoadCallback(drawTitleSubtitle);
+        bRow.push(['City']);
+        for(let t in type){
+            let thead = "";
+            switch(type[t]){
+              case "positive": 
+                  thead = "Confirmed Cases";
+                  break;
+              case "death":
+                  thead = "Deaths";
+                  break;
+              case "total":
+                  thead = "Total Tests Administered";
+                  break;
+              default:
+                  thead = "";
+                  break;
+            }
+            bRow[0].push(thead);
+        }
+         let i = 0;
+          for(let s in sData){
+              tRow.push([s])
+    //                   console.log(sData[s]["positive"]);
+              for(let t in type){
+    //                       console.log(type[t]);
+                  tRow[i].push(sData[s][type[t]]);
+              }
+              i++;
+          }
+        for(let d in tRow){
+            bRow.push(tRow[d]);
+        }
+        function drawTitleSubtitle() {
+              let data = google.visualization.arrayToDataTable(bRow);
+
+              let materialOptions = {
+                chart: {
+                  title: 'Cases of COVID-19',
+                  subtitle: 'Based on most recent data'
+                },
+                hAxis: {
+                  title: 'Total Cases',
+                  minValue: 0,
+                },
+                vAxis: {
+                  title: 'City'
+                },
+                bars: 'horizontal'
+              };
+              let materialChart = new google.charts.Bar(document.getElementById('chart_div'));
+              materialChart.draw(data, materialOptions);
+            }
+    }
+      
+      
+      
+      
+      
+      
+      
+      
+//  Drawer controling pages  
+    document.querySelectorAll('.mdc-list-item').forEach(item => {
+    item.addEventListener('click', event => {
+    //handle click
+    switch (item.id) {
+      case 'home-button':
+        document.querySelector('#home').style.display = "block";
+        document.getElementById('tables').style.display = "none";
+        document.getElementById('charts').style.display = "none";
+        drawer.open = !drawer.open;
+        break;
+      case 'tables-button':
+        document.getElementById('home').style.display = "none";
+        document.getElementById('tables').style.display = "block";
+        document.getElementById('charts').style.display = "none";
+        drawer.open = !drawer.open;
+        break;
+      case 'charts-button':
+        document.getElementById('home').style.display = "none";
+        document.getElementById('tables').style.display = "none";
+        document.getElementById('charts').style.display = "block";
+        drawer.open = !drawer.open;
+        break;
+      default:
+
+        break;
+    }
+  });
+});
+    
+      
+      
+      
+      
+      
+      
+      
+//     let aCountries = "";
+//     let sCountries = [];
+//     let data;
+//     let sData = [];
+//     let tRowData = [];
+//     let cRowData = [];
+//     let numDates = 0;
+      
+//     let apiEndpoint = "https://pomber.github.io/covid19/timeseries.json";
+//     fetch(apiEndpoint)
+//     .then(response => {return response.json()})
+//     .then(json => {
+//         data = json;
+//         for(let prop in json){
+//             aCountries += "<option value='"+prop+"'/>";
+//         }
+//         numDates = data["Afghanistan"].length;
+//         for(let i = 0; i < numDates; i++){
+//             tRowData.push([data["Afghanistan"][i]["date"]]);
+//             cRowData.push([data["Afghanistan"][i]["date"]]);
+//         }
+//         document.getElementById("countries").innerHTML = aCountries;
+//     }).catch(err => console.error(err));
+    
+//     if (navigator.serviceWorker) {
+//       navigator.serviceWorker.register('./sw.js').then(function(registration) {
+//         console.log('ServiceWorker registration successful with scope:',  registration.scope);
+//       }).catch(function(error) {
+//         console.log('ServiceWorker registration failed:', errror);
+//       });
+//     }
+
+//     mdc.topAppBar.MDCTopAppBar.attachTo(document.querySelector('header.mdc-top-app-bar'));
+
+//     const drawer = mdc.drawer.MDCDrawer.attachTo(document.querySelector('.mdc-drawer'));
+
+//     document.querySelector(".mdc-top-app-bar__navigation-icon")
+//         .addEventListener("click", (e) => { 
+// //             console.log("drawer clicked");
+//             drawer.open = true;
+//     });
+    
+//     mdc.ripple.MDCRipple.attachTo(document.querySelector('.foo-button'));  
+    
+//     addCountries = () => {
+//         let inBox = document.querySelector("#allCountries");
+//         let sC = inBox.value
+//         //if cBool is false the add to array
+//         let cBool = false;
+        
+//         //check if entry is blank or already in array
+//         if(sC == ""){
+//             cBool = true;
+//         } else {
+//             for(let c in sCountries){
+//                if(sC == sCountries[c]){
+//                    cBool = true;
+//                }
+//             }
+//         }
+        
+//         //if valid entry: push name of country to sCountries, push data to sData. use sData to fill table
+//         if(!cBool){
+//             inBox.value = "";
+//             sCountries.push(sC);
+//             for(d in data){
+//                 if(d == sC){
+//                     sData[sC] = data[d];
+//                 }
+//             }
+
+//             //pin countries to div under input box
+//             let spot = document.querySelector("#myCountries")
+//             let newE = document.createElement("p")
+//             newE.innerText = sC;
+//             spot.appendChild(newE);
+            
+//             google.charts.load('current', {'packages':['table']});
+//             google.charts.setOnLoadCallback(drawTable);
+
+//             //----------------------------TABLE SET UP---------------------------- 
+//             //loop through sData to fill table. use sCountries to fill table title. use confirmed of each entry to fill table column
+//             function drawTable() {
+//               let tdata = new google.visualization.DataTable();
+//               tdata.addColumn('string', 'Date');
+//               for(c in sCountries){
+//                   tdata.addColumn('number', sCountries[c]);
+//               }
+// //                 console.log(data["Afghanistan"])
+             
+//               for(let i = 0; i < numDates; i++){
+//                   tRowData[i].push(sData[sCountries[sCountries.length-1]][i]["confirmed"]);
+//                   cRowData[i].push(sData[sCountries[sCountries.length-1]][i]["confirmed"]);
+//               }
+// //                       console.log(sData[sCountries[c]][i]["date"] + ", " + sData[sCountries[c]][i]["confirmed"]);
+                  
+              
+//               console.log("Row Data");
+//               console.log(tRowData);
+//               tdata.addRows(tRowData);
+//               console.log(sCountries[0])
+//               //a single row for one country is -> (sData[sCountries[c]][i]["confirmed"]);
+//               let table = new google.visualization.Table(document.getElementById('table_div'));
+              
+//               table.draw(tdata, {width: '100%', height: '100%'});
+//             }
+            
+//             //----------------------------CHART SET UP----------------------------
+//             google.charts.load('current', {packages: ['corechart', 'line']});
+//             google.charts.setOnLoadCallback(drawCurveTypes);
+
+//             function drawCurveTypes() {
+//               let cData = new google.visualization.DataTable();
+//               cData.addColumn('string', 'Date');
+//               for(c in sCountries){
+//                   cData.addColumn('number', sCountries[c]);
+//               }
+//               cData.addRows(tRowData);
+//               let options = {
+//             title:'Confirmed Cases of COVID-19 around the world',
+//                 hAxis: {
+//                   title: 'Date'
+//                 },
+//                 vAxis: {
+//                   title: 'Confirmed Cases'
+//                 },
+//                 series: {
+//                   1: {curveType: 'function'}
+//                 },
+//                 width:1000,
+//                 height: 500
+//               };
+
+//               let chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+//               chart.draw(cData, options);
+//             }
+//         } //if(!cBool)    
+//     }         
+    </script>
+  </body>
+</html>
